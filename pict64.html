@@ -1,0 +1,809 @@
+<html><head><title>pict64.htm</title>
+<meta http-equiv="content-type" content="text/html; charset=iso-8859-1" />
+<script type="text/javascript">
+ function mids(madstr,madsub,madwd)
+ {
+ var mdsr="=";
+ var madwdu=madwd;
+ var madlen=madstr.length;
+ var madzub=madsub-1;
+  if((madzub + madwd) > madlen)
+  {
+  madwdu=madlen - madzub;
+  }
+ if((madwdu >= 1)&&(madzub >= 0)&&(madlen >= 1))
+ {
+ mdsr=madstr.substring(madzub,(madzub+madwdu));
+ }
+ return mdsr;
+ }
+ function ijsposdiv(fjsnumer,fjsdenom,chdsel)
+ {
+ var ijsres=0;
+ var ijsfrac=0;
+ var ijsrem=0;
+ var ijsdenom=Math.floor(fjsdenom);
+ var ijsnumer=Math.floor(fjsnumer);
+ if(ijsdenom >= 1)
+  {
+  fjsfrac=ijsnumer/ijsdenom;
+  ijsfrac=Math.floor(fjsfrac);
+  var ijstop=ijsdenom*ijsfrac;
+  ijsrem=ijsnumer-ijstop;
+  if(ijsrem < 0)
+   {
+   ijsfrac=ijsfrac-1;
+   ijstop=ijsdenom*ijsfrac;
+   ijsrem=ijsnumer-ijstop;
+   }
+  if(chdsel == "f")
+   {
+   ijsres=ijsfrac;
+   }
+  if(chdsel == "r")
+   {
+   ijsres=ijsrem;
+   }
+  }
+ return ijsres;
+ }
+ function dfrom64(dfbig64,dfsub64)
+ {
+ var ch64=mids(dfbig64,dfsub64,1);
+ var ih64=ch64.charCodeAt(0);
+ var re64=90;
+ if((ih64 >= 65)&&(ih64 <= 90))
+ {
+ re64=ih64-65;
+ }
+ if((ih64 >= 97)&&(ih64 <= 122))
+ {
+ re64=ih64+26-97;
+ }
+ if((ih64 >= 48)&&(ih64 <= 57))
+ {
+ re64=ih64+52-48;
+ }
+ if(ih64 == 43)
+ {
+ re64=62;
+ }
+ if(ih64 == 47)
+ {
+ re64=63;
+ }
+ if(ih64 == 61)
+ {
+ re64=88;
+ }
+ return re64;
+ }
+ function bfour3(big43,pos43)
+ {
+ var invflag=0;
+ var line43 = new Array(3);
+ var res43="";
+ var ctr43=2;
+ var rem43=0;
+ var numer43=dfrom64(big43,pos43);
+ if((numer43 < 0)||(numer43 > 63))
+ {
+ invflag=1;
+ }
+ while(ctr43 >= 0)
+ {
+ rem43=ijsposdiv(numer43,4,"r");
+ numer43=ijsposdiv(numer43,4,"f");
+ line43[ctr43]=rem43;
+ ctr43=ctr43-1;
+ }
+ ctr43=0;
+ while(ctr43 < 3)
+ {
+ rem43=line43[ctr43]+1;
+ res43=res43+mids("0123",rem43,1);
+ ctr43=ctr43+1;
+ }
+ if(invflag != 0)
+ {
+ res43="999";
+ }
+ return res43;
+ }
+ function bfour1(big41,pos41)
+ {
+ var pos40=pos41-1;
+ var pos13=ijsposdiv(pos40,3,"f")+1;
+ var rem13=ijsposdiv(pos40,3,"r")+1;
+ var group13=bfour3(big41,pos13);
+ var rfour1=mids(group13,rem13,1);
+ return rfour1;
+ }
+ function byfrom64(bybig64,bysub64,onetwolen)
+ {
+ var by64base=(bysub64 - 1)*4;
+ var by64invalid=0;
+ var by64res=0;
+ var by64ctr=0;
+ var byterm="0";
+ var biterm=0;
+ var by12outer=onetwolen-1;
+ while(by12outer >= 0)
+ {
+ by64ctr=0;
+ biterm=0;
+ while((by64ctr < 4)&&(biterm < 4))
+ {
+ byterm=bfour1(bybig64,(by64base+by64ctr+1+(by12outer*4)));
+ biterm=byterm.charCodeAt(0)-48;
+ if(biterm < 0)
+ {
+ biterm=5;
+ }
+ if(biterm < 4)
+ {
+ by64res=by64res*4;
+ by64res=by64res+biterm;
+ }
+ if(biterm > 3)
+ {
+ by64invalid=1;
+ }
+ by64ctr=by64ctr+1;
+ }
+ by12outer=by12outer-1;
+ }
+ if(by64invalid != 0)
+ {
+ by64res=0;
+ }
+ return by64res;
+ }
+ function pencelen(hsbig,hsdelim)
+ {
+ var pencectr=0;
+ var penceallow=1;
+ var chpence=" ";
+ while((penceallow > 0)&&(pencectr < 16777216))
+ {
+ chpence=hsbig.substring(pencectr,(pencectr+1));
+ if((chpence != hsdelim)&&(penceallow > 0))
+ {
+ pencectr=pencectr+1;
+ }
+ if(chpence == hsdelim)
+ {
+ penceallow=0;
+ }
+ }
+ return pencectr;
+ }
+ function pencecopy(pecright,pelim)
+ {
+ var pecleft="";
+ var pectr=0;
+ var pelen=pencelen(pecright,pelim);
+ var pecmp=85;
+ var pechar="=";
+ while(pectr < pelen)
+ {
+ pechar=pecright.substring(pectr,(pectr+1));
+ pecmp=dfrom64(pechar,1);
+ if((pecmp >= 0)&&(pecmp <= 63))
+ {
+ pecleft += pechar;
+ }
+ pectr=pectr+1;
+ }
+ return pecleft;
+ }
+ function mitchlen(mitchright,mitchlim)
+ {
+ var mitchres=0;
+ var mitchctr=0;
+ var mitchmax=pencelen(mitchright,mitchlim);
+ var mitchcmp=85;
+ var mitchchar="=";
+ while(mitchctr < mitchmax)
+ {
+ mitchchar=mitchright.substring(mitchctr,(mitchctr+1));
+ mitchcmp=dfrom64(mitchchar,1);
+ if((mitchcmp >= 0)&&(mitchcmp <= 63))
+ {
+ mitchres=mitchres+1;
+ }
+ mitchctr=mitchctr+1;
+ }
+ return mitchres;
+ }
+ function getrestlen(grlstr,grlbegin)
+ {
+ var grlmax=grlstr.length;
+ var grlres=0;
+ var grlbase=grlbegin-1;
+ var grlsub=0;
+ var grlctr=0;
+ var grlallow=1;
+ var grsterm=" ";
+ var grlterm=0;
+  while(grlallow == 1)
+  {
+  grlsub=grlbase+grlctr;
+  if(grlsub >= grlmax)grlallow=0;
+  if(grlallow == 1)
+  {
+  grsterm=grlstr.substring(grlsub,(grlsub+1));
+  grlterm=grsterm.charCodeAt(0);
+  if(grlterm == 10)grlallow=0;
+  }
+  if(grlallow == 1)
+  {
+  grlctr=grlctr+1;
+  }
+  }
+ grlres=grlctr;
+ return grlres;
+ }
+ function tinylen(tinystr,tinybegin,tinylimit)
+ {
+ var tinysub=0;
+ var tinychar=" ";
+ var tinyctr=0;
+ var tinyallow=1;
+ var tinybiglen=tinystr.length;
+  while(tinyallow == 1)
+  {
+  tinysub=tinybegin+tinyctr;
+  if(tinysub > tinybiglen)tinyallow=0;
+  if(tinyctr >= tinylimit)tinyallow=0;
+  if(tinyallow == 1)
+  {
+  tinychar=mids(tinystr,tinysub,1);
+  if(tinychar == ";")tinyallow=0;
+  }
+  if(tinyallow == 1)
+  {
+  tinyctr=tinyctr+1;
+  }
+  }
+ return tinyctr;
+ }
+ function gethexdig(ghdstr,ghdsub)
+ {
+ var ghr=18;
+ var ghc=mids(ghdstr,ghdsub,1);
+ var ghi=ghc.charCodeAt(0);
+ if((ghi >= 48)&&(ghi <= 57))
+ {
+ ghr=ghi-48;
+ }
+ if((ghi >= 65)&&(ghi <= 70))
+ {
+ ghr=ghi-55;
+ }
+ if((ghi >= 97)&&(ghi <= 102))
+ {
+ ghr=ghi-87;
+ }
+ return ghr;
+ }
+ function agethexval(ahvstr,ahvbase,ahvbegin,ahvl1,ahvl2,ahvmode)
+ {
+ var ahvres=0-1;
+ var ahvctr=0;
+ var ahvsub=0;
+ var ahvterm=0;
+ var ahvint=0;
+ var ahvallow=1;
+ var ahvout=0;
+// ahvsub=ahvbase+ahvctr+ahvbegin-1;
+// ahvterm=gethexdig(ahvstr,ahvsub);
+// if(ahvterm <= 15)ahvallow=0;
+ while(ahvallow == 1)
+ {
+ ahvsub=ahvbase+ahvctr+ahvbegin-1;
+ if(ahvctr >= ahvl1)ahvallow=0;
+ if(ahvctr >= ahvl2)ahvallow=0;
+ if(ahvallow == 1)
+ {
+ ahvterm=gethexdig(ahvstr,ahvsub);
+ if(ahvterm <= 15)ahvallow=0;
+ }
+ if(ahvallow == 1)ahvctr=ahvctr+1;
+ }
+ ahvallow=1;
+ while(ahvallow == 1)
+ {
+ ahvsub=ahvbase+ahvctr+ahvbegin-1;
+ if(ahvctr >= ahvl1)ahvallow=0;
+ if(ahvctr >= ahvl2)ahvallow=0;
+ if(ahvallow == 1)
+ {
+ ahvterm=gethexdig(ahvstr,ahvsub);
+ ahvsub=ahvsub+1;
+ if((ahvterm < 0)||(ahvterm > 15))ahvallow=0;
+ }
+ if(ahvallow == 1)
+ {
+ ahvint=ahvint*16;
+ ahvint=ahvint+ahvterm;
+ ahvout=1;
+ ahvctr=ahvctr+1;
+ }
+ }
+ if(ahvout == 1)
+ {
+ if(ahvmode=="i")ahvres=ahvint;
+ if(ahvmode=="w")ahvres=ahvctr;
+ }
+ return ahvres;
+ }
+ function getbfour(gbfint)
+ {
+ var gbfnumer=gbfint;
+ var gbfres="";
+ var gbfa = new Array(4);
+ var gbfctr=3;
+ var gbfrem=0;
+ while(gbfctr >= 0)
+ {
+ gbfrem=ijsposdiv(gbfnumer,4,"r");
+ gbfnumer=ijsposdiv(gbfnumer,4,"f");
+ gbfa[gbfctr]=gbfrem;
+ gbfctr=gbfctr-1;
+ }
+ gbfctr=0;
+ while(gbfctr < 4)
+ {
+ gbfrem=(gbfa[gbfctr])+1;
+ gbfres += mids("0123",gbfrem,1);
+ gbfctr = gbfctr + 1;
+ }
+ return gbfres;
+ }
+ function threelines(thlstr,thlbegin,inmode)
+ {
+ var thlres="";
+ var thlctr=0;
+ var thldex=0;
+ var thlnext=0;
+ var thlstart=thlbegin;
+ var thlnumber=0;
+ var thleof=0;
+ var thlmax01=0;
+ var thlmax02=0;
+ var thlolop=0;
+ while(thlolop < 3)
+ {
+ thlmax01=getrestlen(thlstr,thlstart);
+ thlmax02=tinylen(thlstr,thlstart,thlmax01);
+ thlctr=thlstart-1;
+ if(thlctr >= thlstr.length)thleof=1;
+ if(thleof == 0)
+ {
+ thlctr=0;
+ thldex=1;
+ thlnumber=agethexval(thlstr,thlstart,thldex,thlmax01,thlmax02,"w");
+ thldex=thldex+thlnumber;
+ while(thlctr < 8)
+ {
+ thlnumber=agethexval(thlstr,thlstart,thldex,thlmax01,thlmax02,"i");
+ if(thlnumber < 0)thlctr=9;
+ if(thlnumber >= 0)
+ {
+ thlres=thlres+getbfour(thlnumber);
+ thlnumber=agethexval(thlstr,thlstart,thldex,thlmax01,thlmax02,"w");
+ thldex=thldex+thlnumber;
+ }
+ thlctr=thlctr+1;
+ }
+ thlstart=thlstart+thlmax01+1;
+ }
+ thlolop=thlolop+1;
+ }
+ if(inmode == "i")thlrez=thlres;
+ if(inmode == "n")thlrez=thlstart;
+ return thlrez;
+ }
+ function frombfour(fbfstr,fbfsub)
+ {
+ var fbfres=0;
+ var fbfterm=0;
+ var fbfdub=0;
+ var fbfcerm=" ";
+ var fbfctr=0;
+ var fbftub=fbfsub-1;
+ var fbflen=fbfstr.length-fbftub;
+ fbftub=fbfsub;
+ if(fbflen < 1)
+ {
+ fbfctr=9;
+ fbfres=0-1;
+ }
+ while(fbfctr < 3)
+ {
+ fbfcerm="0";
+ fbfdub=fbftub+fbfctr;
+ if(fbfctr < fbflen)fbfcerm=mids(fbfstr,fbfdub,1);
+ fbfterm=fbfcerm.charCodeAt(0)-48;
+ fbfres=fbfres*4;
+ fbfres=fbfres+fbfterm;
+ fbfctr=fbfctr+1;
+ }
+ return fbfres;
+ }
+ function abget64(aetbstr,aetbsub)
+ {
+ var agbres="=";
+ var agbnbr=frombfour(aetbstr,aetbsub);
+ if((agbnbr >= 0)&&(agbnbr <= 25))
+ {
+ agbres=mids("ABCDEFGHIJKLMNOPQRSTUVWXYZ",(agbnbr+1),1);
+ }
+ if((agbnbr >= 26)&&(agbnbr <= 51))
+ {
+ agbres=mids("abcdefghijklmnopqrstuvwxyz",(agbnbr+1-26),1);
+ }
+ if((agbnbr >= 52)&&(agbnbr <= 61))
+ {
+ agbres=mids("0123456789",(agbnbr+1-52),1);
+ }
+ if(agbnbr == 62)
+ {
+ agbres="+";
+ }
+ if(agbnbr == 63)
+ {
+ agbres="/";
+ }
+ return agbres;
+ }
+ function acget464(aftstr,aftbsub)
+ {
+ var acgres="";
+ var acgcerm="=";
+ var acgctr=0;
+ var acgdex=aftbsub;
+ while(acgctr < 4)
+ {
+ acgcerm=abget64(aftstr,acgdex);
+ acgdex=acgdex+3;
+ acgres=acgres+acgcerm;
+ acgctr=acgctr+1;
+ }
+ return acgres;
+ }
+ function eightline64(elestr)
+ {
+ var eleres="";
+ var electr=0;
+ var elediff12=1;
+ var elerep="";
+ while(electr < 8)
+ {
+ elerep=acget464(elestr,elediff12);
+ elediff12=elediff12+12;
+ if((mids(elerep,1,1))=="=")
+ {
+ electr=9;
+ }
+ if(electr < 8)
+ {
+ eleres=eleres+elerep;
+ }
+ electr=electr+1;
+ }
+ return eleres;
+ }
+ function dbump(x1115,bsel)
+  {
+  var line96="";
+  var duprev=0;
+  var dubegin=0;
+  var dunext=0;
+  var part32="";
+  var duallow=1;
+  var hxiggy=x1115;
+  var secondlen=0;
+  var secondpar=0;
+  var diggy="";
+  hxiggy=hxiggy+"@@@@@@";
+//  var secondlen=pencelen(hxiggy,"@");
+//  var secondpar=mitchlen(hxiggy,"@");
+  if(bsel == 64)
+  {
+  secondlen=pencelen(hxiggy,"@");
+  secondpar=mitchlen(hxiggy,"@");
+  diggy=pencecopy(hxiggy,"@");
+  }
+  if(bsel == 16)
+  {
+  duprev=1;
+  dubegin=1;
+  while(duallow == 1)
+  {
+  line96=threelines(x1115,dubegin,"i");
+  dunext=threelines(x1115,dubegin,"n");
+  part32=eightline64(line96);
+  if(part32.length < 4)duallow=0;
+  if(duallow == 1)
+  {
+  diggy=diggy+part32;
+  }
+  duprev=dubegin;
+  dubegin=dunext;
+  if(part32.length < 32)duallow=0;
+  }
+  secondlen=dubegin;
+  secondpar=(line96.length).toString();
+  }
+  var biggy="data:image/unknown;base64,"
+  var digctr=1;
+  var firstpar=byfrom64(diggy,digctr+0,2);
+  var parl03=0;
+  var parl04=0;
+  var parl05=0;
+  var carl06="invalid_type";
+  if(firstpar == 19778)
+  {
+  biggy="data:image/bmp;base64,"
+  parl03=byfrom64(diggy,digctr+18,2);
+  parl04=byfrom64(diggy,digctr+22,2);
+  parl05=byfrom64(diggy,digctr+28,2);
+  carl06=".bmp";
+  }
+  biggy += diggy;
+  document.getElementById("text1112").value="";
+  document.getElementById("text1113").value="";
+  document.getElementById("text1112").value+=secondlen.toString();
+  document.getElementById("text1112").value+=" ";
+  document.getElementById("text1112").value+=secondpar;
+  document.getElementById("text1112").value+=" ";
+  document.getElementById("text1112").value+=carl06;
+  document.getElementById("text1113").value+=firstpar.toString();
+  document.getElementById("text1113").value+=" ";
+  document.getElementById("text1113").value+=parl03.toString();
+  document.getElementById("text1113").value+=" ";
+  document.getElementById("text1113").value+=parl04.toString();
+  document.getElementById("text1113").value+=" ";
+  document.getElementById("text1113").value+=parl05.toString();
+  document.getElementById("text1113").value+=" ";
+  document.getElementById("img1114").src=biggy;
+  }
+ function dclear()
+ {
+  document.getElementById("img1114").src="";
+  ta1198.value="";
+  text1113.value="";
+  text1112.value="";
+ }
+ function declear()
+ {
+ ta1198.value="";
+ }
+ function bnxt(xv1116,basel)
+ {
+ document.getElementById("img1114").src="";
+ dbump(xv1116.toString(),basel);
+ }
+</script></head>
+<body>
+<table cols="2" cellpadding="5" border="1">
+<tr><td colspan="2">
+<h2>Potential Base 64 gibberish or base 16 bytes to picture.</h2>
+</td></tr><tr><td colspan="2">
+This textarea ta1198 is the only textarea that you can paste into<br />
+</td></tr><tr><td>
+It is here to accept a base 64 <br />representation of a image to view<br />
+with the <b>show_user_in64</b> button. <br />
+</td><td>
+It is here to accept a base 16 <br />representation of a image to view<br />
+with the <b>show_user_in16</b> button. <br />
+</td></tr><td colspan="2">
+<textarea id="ta1198" cols="80" rows="12" ></textarea><br /><br />
+</td></tr></table><br />
+<table cols="3" cellpadding="4" border="1">
+<tr><td>
+<input type="button" value="clear_result" onclick="dclear()" /> separator
+<input type="button" value="show_fixed" onclick="bnxt(ta1115.value,16)" />
+<br />
+</td><td>
+<input type="button" value="show_user_in64" onclick="bnxt(ta1198.value,64)" />
+ se <input type="button" value="clear_input" onclick="declear()" /><br />
+</td><td>
+<input type="button" value="show_user_in16" onclick="bnxt(ta1198.value,16)" />
+ se <input type="button" value="unused" />
+</td></tr><tr><td>
+<input type="text" id="text1112" maxlength="170" value="line_of_text" /><br />
+</td><td>
+<input type="text" id="text1113" maxlength="170" value="line_of_text" /><br />
+</td><td> rightmost
+</td></tr></table><br />
+<table cols="1" cellpadding="4" border="2">
+<tr><td>
+<img id="img1114" alt="broken" src="" /><br />
+is being viewed on pict64.htm<br />
+Selective service registration should be<br />
+required to treat both sexes equally<br />
+</td></tr></table><br /><br />
+<textarea id="tu1114" cols="80" rows="37" readonly="readonly">
+ This pict64.htm HTML and JavaScript program is designed to
+display a bunch of base 64 gibberish or converted
+base 16 as a image and it was written by Eric Matteson
+and permission is granted to copy this file pict64.htm
+and to publish it on the Internet.
+Base 64 is explained as
+00 A_65 to 25 Z_90
+26 a_97 to 51 z_122
+52 0_48 to 61 9_57
+62 +_43
+63 /_47
+end of file =
+--------------
+Each base 64 digit is 6 bits and can be represented by one
+base 64 character or 3 base 4 digits. Each 8 bit byte
+can be represented as 4 base 4 digits internally.
+Each group of four base 64 digits is equal to
+a group of three 8 bit bytes.
+-------------
+@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
+in traditional base 16 numbers we have
+00 0_48 to 09 9_57
+10 A_65 to 15 F_70
+---------------------
+In base 4 numbers the digits are
+00 0_48 to 03 3_51
+---------------------
+A group of 24 bytes contains 48 hexadecimal digits
+which are each represented by two base 4 digits
+so 96 base four digits can eventually be represented
+by 32 groups of 3 base four digits that each represent
+one base 64 digit for a string of 32 base 64 digits
+that represent the 24 bytes that was begun with in
+base 16 to 64 conversion.
+-------
+</textarea><br /><br />
+The next textarea is fixed and impossible to paste into<br />
+and is viewed using the <b>show_fixed</b> button.<br />
+it is a base 16 representation of ds9v2021.bmp<br /><br />
+<textarea id="ta1115" cols="80" rows="29" readonly="readonly">
+ db   042H, 04DH, 03EH, 004H, 000H, 000H, 000H, 000H    ;          BM>.....
+ db   000H, 000H, 03EH, 000H, 000H, 000H, 028H, 000H    ;          ..>...(.
+ db   000H, 000H, 080H, 000H, 000H, 000H, 040H, 000H    ;          ......@.
+ db   000H, 000H, 001H, 000H, 001H, 000H, 000H, 000H    ;          ........
+ db   000H, 000H, 000H, 004H, 000H, 000H, 0C4H, 00EH    ;          ........
+ db   000H, 000H, 0C4H, 00EH, 000H, 000H, 000H, 000H    ;          ........
+ db   000H, 000H, 000H, 000H, 000H, 000H, 000H, 000H    ;          ........
+ db   000H, 000H, 0FFH, 0FFH, 0FFH, 000H, 0FFH, 0FFH    ;          ........
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 07FH, 0FEH    ;          ........
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 07FH, 0FEH    ;          ........
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FEH, 063H    ;          .......c
+ db   0F1H, 0CBH, 0BCH, 07EH, 058H, 0E3H, 04FH, 0C6H    ;          ...~X.O.
+ db   09CH, 0B1H, 0C7H, 0E3H, 0BFH, 0FFH, 0FEH, 0DDH    ;          ........
+ db   0EEH, 0B3H, 0BBH, 0BDH, 097H, 05DH, 037H, 0BAH    ;          .....]7.
+ db   06BH, 02EH, 0BBH, 0DDH, 0FFH, 0FFH, 0FEH, 0DDH    ;          k.......
+ db   0FDH, 0BBH, 05BH, 0FDH, 0D7H, 0DFH, 077H, 0F6H    ;          ..[...w.
+ db   0EBH, 0AFH, 0BFH, 0FDH, 0FFH, 0FFH, 0FEH, 0DDH    ;          ........
+ db   0F3H, 0C3H, 058H, 03DH, 0D0H, 041H, 077H, 0CEH    ;          ..X=.Aw.
+ db   0ECH, 02FH, 083H, 0E1H, 0FFH, 0FFH, 0FEH, 0DDH    ;          ./......
+ db   0EEH, 0BAH, 0EBH, 0BDH, 097H, 05DH, 037H, 0BAH    ;          .....]7.
+ db   06BH, 0AEH, 0BBH, 0DDH, 0FFH, 0FFH, 0FEH, 063H    ;          k......c
+ db   0F1H, 0C6H, 0ECH, 07EH, 058H, 0E3H, 04FH, 0C6H    ;          ...~X.O.
+ db   09CH, 071H, 0C7H, 0DDH, 0FFH, 0FFH, 0FEH, 0FFH    ;          .q......
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0DFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0FFH, 0FFH, 0FFH, 0DDH, 0FFH, 0FFH, 0FEH, 0FFH    ;          ........
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0DFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0FFH, 0FFH, 0FFH, 0E3H, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0F9H, 0DFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0F6H, 007H, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0F7H    ;          ........
+ db   0FFH, 0EFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0ECH, 001H, 0FFH, 0FFH, 0FFH, 0FEH, 0FFH, 0FBH    ;          ........
+ db   0FFH, 0F7H, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0EDH, 001H, 0FFH, 0FFH, 0FFH, 0FEH, 0CAH, 0FBH    ;          ........
+ db   0F8H, 0F7H, 08CH, 0C6H, 0DBH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0DBH, 000H, 0FFH, 0FFH, 0FFH, 0FEH, 0B2H, 0FBH    ;          ........
+ db   0F7H, 077H, 075H, 0BAH, 0DBH, 0FFH, 0FFH, 0FFH    ;          .wu.....
+ db   09BH, 080H, 0FFH, 0FFH, 0FFH, 0FEH, 0BAH, 0F5H    ;          ........
+ db   0FEH, 0EBH, 0EDH, 0BEH, 0DBH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   097H, 080H, 07FH, 0FFH, 0FFH, 0FEH, 0BAH, 0F5H    ;          ........
+ db   0F9H, 0EBH, 09DH, 082H, 0DBH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   097H, 080H, 07FH, 0EFH, 0FFH, 0FEH, 0BAH, 06EH    ;          .......n
+ db   0F7H, 05DH, 075H, 0BAH, 05BH, 0FFH, 0FFH, 0FFH    ;          .]u.[...
+ db   0AFH, 0C0H, 001H, 0EFH, 0FFH, 0FEH, 0BAH, 0AEH    ;          ........
+ db   0F8H, 0DDH, 088H, 0C6H, 087H, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0AFH, 0C0H, 000H, 009H, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0FFH, 0FFH, 0FDH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0AFH, 0C0H, 000H, 00BH, 0FFH, 0FEH, 0FFH, 0FFH    ;          ........
+ db   0FFH, 0FFH, 0FDH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   01FH, 0C0H, 000H, 007H, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0F1H, 0E0H    ;          ........
+ db   01FH, 0C0H, 000H, 01FH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FEH, 0EFH    ;          ........
+ db   05FH, 0A0H, 000H, 01FH, 0FFH, 0FFH, 0FFH, 0FFH    ;          _.......
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0F8H, 000H    ;          ........
+ db   01FH, 0A0H, 000H, 03FH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ...?....
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FEH, 000H    ;          ........
+ db   05FH, 0C0H, 000H, 07FH, 0FFH, 0FFH, 0FFH, 0FFH    ;          _.......
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 000H    ;          ........
+ db   05FH, 0E0H, 000H, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          _.......
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 080H    ;          ........
+ db   03FH, 0E0H, 001H, 0FFH, 0FFH, 0FFH, 0BCH, 06CH    ;          ?......l
+ db   0AEH, 098H, 0E3H, 07FH, 0FFH, 0FFH, 0FFH, 080H    ;          ........
+ db   03FH, 0E0H, 000H, 03FH, 0FFH, 0FFH, 0BBH, 0ABH    ;          ?..?....
+ db   02EH, 0B7H, 05DH, 07FH, 0FFH, 0FFH, 0FFH, 080H    ;          ..].....
+ db   03FH, 0E0H, 007H, 0FFH, 0FFH, 0FFH, 05BH, 0ABH    ;          ?.....[.
+ db   0AEH, 0B7H, 0DFH, 07FH, 0FFH, 0FFH, 0FFH, 080H    ;          ........
+ db   03FH, 0E0H, 00FH, 0FFH, 0FFH, 0FFH, 05BH, 0ABH    ;          ?.....[.
+ db   0AEH, 0B0H, 041H, 07FH, 0FFH, 0FFH, 0FFH, 080H    ;          ..A.....
+ db   000H, 0E0H, 00FH, 0FFH, 0FFH, 0FEH, 0EBH, 0ABH    ;          ........
+ db   0AEH, 0B7H, 05DH, 03FH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ..]?....
+ db   03FH, 0E0H, 00FH, 0FFH, 0FFH, 0FEH, 0ECH, 06BH    ;          ?......k
+ db   0A1H, 018H, 0E3H, 05FH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ..._....
+ db   03FH, 0E0H, 00FH, 0FFH, 0FFH, 0FFH, 0FFH, 0EFH    ;          ?.......
+ db   0FFH, 0BFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   03FH, 0E0H, 00FH, 0FFH, 0FFH, 0FFH, 0FFH, 0EFH    ;          ?.......
+ db   0FFH, 0BFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   03FH, 0E0H, 00FH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ?.......
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   03FH, 0E0H, 00FH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ?.......
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   03FH, 0E0H, 00BH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ?.......
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0E7H, 0FFH    ;          ........
+ db   03FH, 0E0H, 001H, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ?.......
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0F0H, 0FFH    ;          ........
+ db   05FH, 0E0H, 000H, 07FH, 0FFH, 0FFH, 0FFH, 0FFH    ;          _.......
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0F0H, 01FH    ;          ........
+ db   05FH, 0E0H, 000H, 00FH, 0FFH, 0FFH, 0FFH, 0FFH    ;          _.......
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0F8H, 003H    ;          ........
+ db   09FH, 0C0H, 000H, 00FH, 0FFH, 0FFH, 0BCH, 066H    ;          .......f
+ db   03FH, 071H, 0BFH, 095H, 07FH, 0FFH, 0FCH, 000H    ;          ?q......
+ db   01FH, 0C0H, 000H, 0FFH, 0FFH, 0FFH, 0BBH, 0ADH    ;          ........
+ db   0DFH, 06EH, 0BFH, 065H, 07FH, 0FFH, 0FCH, 000H    ;          .n.e....
+ db   01FH, 0C0H, 001H, 0FFH, 0FFH, 0FFH, 05BH, 0ADH    ;          ......[.
+ db   0FFH, 06EH, 0BFH, 075H, 07FH, 0FFH, 0FCH, 000H    ;          .n.u....
+ db   01FH, 0C0H, 003H, 0FFH, 0FFH, 0FFH, 05BH, 0ACH    ;          ......[.
+ db   01FH, 06EH, 0BFH, 085H, 07FH, 0FFH, 0FEH, 000H    ;          .n......
+ db   02FH, 0C0H, 007H, 0FFH, 0FFH, 0FEH, 0EBH, 0ADH    ;          /.......
+ db   0DFH, 06EH, 09FH, 075H, 07FH, 0FFH, 0FEH, 000H    ;          .n.u....
+ db   00FH, 080H, 00FH, 0FFH, 0FFH, 0FEH, 0ECH, 046H    ;          .......F
+ db   03EH, 031H, 0AFH, 08DH, 07FH, 0FFH, 0FFH, 000H    ;          >1......
+ db   00FH, 080H, 00FH, 0FFH, 0FFH, 0FFH, 0FFH, 0EFH    ;          ........
+ db   0FFH, 07FH, 0FFH, 0FDH, 07FH, 0FFH, 0FFH, 0C0H    ;          ........
+ db   017H, 080H, 03FH, 0FFH, 0FFH, 0FFH, 0FFH, 0EFH    ;          ..?.....
+ db   0FFH, 0BFH, 0FFH, 0FDH, 07FH, 0FFH, 0FFH, 0E0H    ;          ........
+ db   017H, 001H, 07FH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FEH    ;          ........
+ db   003H, 000H, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0EBH, 000H, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0F4H, 001H, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0F8H, 001H, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0FEH, 003H, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0FFH, 08FH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH, 0FFH    ;          ........
+ db   0FFH, 0FFH, 0FFH, 0FFH, 07FH, 07FH, 07FH, 07FH    ;          ........
+ db   0FFH, 0FFH, 0FEH, 0FEH, 0FEH, 0FEH                ;          ......
+</textarea><br />
+estimated upload date was: July 01 2021 :<br />
+</body></html>
+
